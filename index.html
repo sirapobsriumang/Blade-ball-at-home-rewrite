@@ -30,6 +30,18 @@
             padding: 10px;
             font-size: 16px;
         }
+
+        #actionButtons {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        #deflectButton, #autoParryButton {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
@@ -41,6 +53,11 @@
         <button id="dButton">D</button>
     </div>
 
+    <div id="actionButtons">
+        <button id="deflectButton">Deflect</button>
+        <button id="autoParryButton">Auto Parry</button>
+    </div>
+
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
@@ -50,13 +67,14 @@
 
         const player = {
             x: canvas.width / 2,
-            y: canvas.height / 2,
+            y: canvas.height - 50,  // Player starts at the bottom
             width: 50,
             height: 50,
             speed: 5,
             dx: 0,
             dy: 0,
-            color: "blue"
+            color: "blue",
+            deflecting: false
         };
 
         const ball = {
@@ -71,7 +89,7 @@
 
         const bot = {
             x: canvas.width / 2,
-            y: canvas.height / 2,
+            y: 50,  // Bot starts at the top
             width: 50,
             height: 50,
             color: "green"
@@ -83,6 +101,8 @@
             s: false,
             d: false
         };
+
+        let autoParryEnabled = false;
 
         document.addEventListener("keydown", (e) => {
             if (e.key === "w") keys.w = true;
@@ -102,6 +122,15 @@
         document.getElementById("aButton").addEventListener("click", () => keys.a = true);
         document.getElementById("sButton").addEventListener("click", () => keys.s = true);
         document.getElementById("dButton").addEventListener("click", () => keys.d = true);
+
+        document.getElementById("deflectButton").addEventListener("click", () => {
+            player.deflecting = true;
+            setTimeout(() => player.deflecting = false, 300);  // Temporarily enable deflect
+        });
+
+        document.getElementById("autoParryButton").addEventListener("click", () => {
+            autoParryEnabled = !autoParryEnabled;
+        });
 
         function movePlayer() {
             if (keys.w) player.dy = -player.speed;
@@ -127,9 +156,16 @@
         function checkDeflect() {
             const dist = Math.hypot(player.x - ball.x, player.y - ball.y);
             if (dist < player.width / 2 + ball.radius) {
-                ball.speed += 1;
-                ball.dx = -ball.dx;
-                ball.dy = -ball.dy;
+                if (player.deflecting) {
+                    ball.speed += 1;
+                    ball.dx = -ball.dx;
+                    ball.dy = -ball.dy;
+                } else if (autoParryEnabled) {
+                    // Auto-parry if enabled
+                    ball.speed += 1;
+                    ball.dx = -ball.dx;
+                    ball.dy = -ball.dy;
+                }
             }
         }
 
